@@ -199,7 +199,7 @@ The app will open automatically at `http://localhost:8501`.
 
 1. **Select a data source** — Use the default bundled dataset or upload your own CSV via the sidebar.
 2. **Verify column mapping** — The app auto-detects timestamp and price columns. Adjust if needed.
-3. **Choose a model** — Pick from ARIMA, Prophet, LSTM, or Holt-Winters.
+3. **Choose a model** — Pick from ARIMA, Prophet, Holt-Winters, and LSTM when TensorFlow is available in the runtime.
 4. **Configure parameters** — Set the forecast horizon (days), confidence interval (%), and training window.
 5. **Generate forecast** — Click the primary button to train the model and view results.
 6. **Analyze results** — Review backtest accuracy metrics, the actual-vs-predicted chart, forecast chart with uncertainty bands, and the data table.
@@ -238,6 +238,7 @@ This project is pre-configured for one-click deployment on [Streamlit Community 
 
 - The `datasets/` folder is gitignored. On Streamlit Cloud, users will need to upload a CSV through the UI (the "Upload CSV" data source option).
 - `tensorflow-cpu` is specified in `requirements.txt` instead of the full `tensorflow` package to reduce memory usage on cloud environments.
+- TensorFlow is installed only for Python versions below 3.13. On newer runtimes (for example 3.14), the app deploys without TensorFlow and automatically disables the LSTM model.
 - The `.streamlit/config.toml` file sets `maxUploadSize = 512` MB to support large BTC datasets.
 
 ---

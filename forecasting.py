@@ -7,6 +7,7 @@ Every function here is unchanged from the original working implementation.
 from pathlib import Path
 from statistics import NormalDist
 from io import BytesIO
+import importlib.util
 import re
 import os
 import warnings
@@ -47,6 +48,11 @@ def _import_lstm_stack():
     from tensorflow.keras.callbacks import EarlyStopping
     from sklearn.preprocessing import MinMaxScaler
     return Sequential, LSTM, Dense, Dropout, EarlyStopping, MinMaxScaler
+
+
+def is_lstm_available():
+    """Return True when TensorFlow is installed in the active environment."""
+    return importlib.util.find_spec("tensorflow") is not None
 
 DEFAULT_DATASET_PATH = Path("./datasets/btcusd_1-min_data.csv")
 
@@ -417,6 +423,12 @@ def build_lstm_model(Sequential, LSTM, Dense, Dropout, lookback):
 
 def run_lstm_forecast(series, horizon_days, confidence_percent):
     """LSTM-based forecast with backtest evaluation and future projection."""
+    if not is_lstm_available():
+        raise ImportError(
+            "LSTM requires TensorFlow, which is not installed for this Python runtime. "
+            "Use ARIMA/Prophet/Holt-Winters or run on Python 3.11/3.12 for LSTM."
+        )
+
     Sequential, LSTM_Layer, Dense, Dropout, EarlyStopping, MinMaxScaler = _import_lstm_stack()
 
     train, test = split_train_test(series, horizon_days)

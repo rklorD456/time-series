@@ -18,6 +18,7 @@ from forecasting import (
     get_default_price_column,
     get_price_candidate_columns,
     get_timestamp_candidate_columns,
+    is_lstm_available,
     load_csv_from_bytes,
     load_csv_from_path,
     prepare_daily_series,
@@ -386,11 +387,19 @@ def main():
 
         st.markdown("---")
         st.markdown("### 🤖 Model")
+        lstm_available = is_lstm_available()
+        available_models = [
+            model_name
+            for model_name in MODEL_INFO
+            if lstm_available or model_name != "LSTM (Deep Learning)"
+        ]
         model_choice = st.selectbox(
             "Forecasting model",
-            list(MODEL_INFO.keys()),
+            available_models,
             format_func=lambda m: f"{MODEL_INFO[m]['icon']}  {m}",
         )
+        if not lstm_available:
+            st.caption("LSTM is disabled in this runtime because TensorFlow is unavailable.")
         st.caption(MODEL_INFO[model_choice]["desc"])
 
         st.markdown("---")
