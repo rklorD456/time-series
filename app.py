@@ -10,7 +10,6 @@ import streamlit as st
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from forecasting import (
-    DEFAULT_DATASET_PATH,
     calculate_mape,
     downsample_for_plot,
     find_timestamp_column,
@@ -20,7 +19,7 @@ from forecasting import (
     get_timestamp_candidate_columns,
     is_lstm_available,
     load_csv_from_bytes,
-    load_csv_from_path,
+    load_default_dataset,
     prepare_daily_series,
     select_training_frame,
 )
@@ -346,17 +345,24 @@ def main():
         raw_df = load_csv_from_bytes(uploaded_file.getvalue())
         source_name = uploaded_file.name
     else:
-        if not DEFAULT_DATASET_PATH.exists():
-            st.error(
-                f"Default local dataset not found: `{DEFAULT_DATASET_PATH}`. "
-                "Switch to **Upload CSV** or add the file."
+        try:
+            raw_df, source_name, source_type = load_default_dataset()
+        except FileNotFoundError as exc:
+            st.error(str(exc))
+            st.info(
+                "Please switch to Upload CSV and provide your dataset file if "
+                "Kaggle fallback is not available in this runtime."
             )
             st.stop()
-        raw_df = load_csv_from_path(str(DEFAULT_DATASET_PATH))
-        source_name = DEFAULT_DATASET_PATH.name
+
+        if source_type == "kaggle":
+            st.info(
+                "Local dataset was not found, so the app loaded the BTC dataset "
+                "from Kaggle automatically."
+            )
 
     if raw_df.empty:
-        st.error("The uploaded CSV is empty.")
+        st.error("The loaded dataset is empty.")
         st.stop()
     if len(raw_df.columns) < 2:
         st.error("The CSV needs at least a timestamp column and a price column.")
@@ -483,7 +489,7 @@ def main():
     st.markdown('<div class="section-hdr">📉 Historical Price</div>', unsafe_allow_html=True)
     st.plotly_chart(
         _build_history_figure(downsample_for_plot(prepared_df)),
-        use_container_width=True,
+        width="stretch",
     )
 
     # ── Forecast button ─────────────────────────────────────────────────────
@@ -494,7 +500,7 @@ def main():
         run_forecast = st.button(
             f"🚀  Generate {model_choice} Forecast  ({effective_horizon}d)",
             type="primary",
-            use_container_width=True,
+            width="stretch",
         )
 
     if not run_forecast:
@@ -543,7 +549,7 @@ def main():
             results["test"], results["backtest_pred"],
             results["backtest_lower"], results["backtest_upper"],
         ),
-        use_container_width=True,
+        width="stretch",
     )
 
     # ── Forecast chart ──────────────────────────────────────────────────────
@@ -576,7 +582,7 @@ def main():
             future_lower=results["future_lower"],
             future_upper=results["future_upper"],
         ),
-        use_container_width=True,
+        width="stretch",
     )
 
     # ── Forecast table ──────────────────────────────────────────────────────
@@ -595,7 +601,7 @@ def main():
             f"Lower {confidence_pct}%": "${:,.2f}",
             f"Upper {confidence_pct}%": "${:,.2f}",
         }),
-        use_container_width=True,
+        width="stretch",
         height=min(400, 35 * len(forecast_table) + 38),
     )
 

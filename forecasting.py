@@ -55,6 +55,8 @@ def is_lstm_available():
     return importlib.util.find_spec("tensorflow") is not None
 
 DEFAULT_DATASET_PATH = Path("./datasets/btcusd_1-min_data.csv")
+KAGGLE_DATASET_REF = "mczielinski/bitcoin-historical-data"
+KAGGLE_DATASET_FILE = "btcusd_1-min_data.csv"
 
 TIMESTAMP_CANDIDATES = [
     "timestamp",
@@ -189,6 +191,43 @@ def load_csv_from_path(path):
 @st.cache_data(show_spinner=False)
 def load_csv_from_bytes(content):
     return pd.read_csv(BytesIO(content))
+
+
+@st.cache_data(show_spinner="Loading default BTC dataset...")
+def load_default_dataset():
+    """Load local default CSV, or fall back to the public Kaggle dataset."""
+    if DEFAULT_DATASET_PATH.exists():
+        return load_csv_from_path(str(DEFAULT_DATASET_PATH)), DEFAULT_DATASET_PATH.name, "local"
+
+    try:
+        import kagglehub
+    except ImportError as exc:
+        raise FileNotFoundError(
+            "Default local dataset is missing and Kaggle fallback is unavailable. "
+            "Switch to Upload CSV or install kagglehub."
+        ) from exc
+
+    try:
+        dataset_dir = Path(kagglehub.dataset_download(KAGGLE_DATASET_REF))
+        preferred_path = dataset_dir / KAGGLE_DATASET_FILE
+
+        if preferred_path.exists():
+            csv_path = preferred_path
+        else:
+            matches = list(dataset_dir.rglob(KAGGLE_DATASET_FILE))
+            if not matches:
+                raise FileNotFoundError(
+                    f"Could not locate '{KAGGLE_DATASET_FILE}' in downloaded Kaggle dataset."
+                )
+            csv_path = matches[0]
+
+        source_name = f"Kaggle ({KAGGLE_DATASET_REF})"
+        return load_csv_from_path(str(csv_path)), source_name, "kaggle"
+    except Exception as exc:
+        raise FileNotFoundError(
+            "Default local dataset is missing and automatic Kaggle download failed. "
+            "Switch to Upload CSV or add datasets/btcusd_1-min_data.csv."
+        ) from exc
 
 
 @st.cache_data(show_spinner="Preparing daily series…")

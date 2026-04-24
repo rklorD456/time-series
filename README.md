@@ -9,6 +9,7 @@
 [![Plotly](https://img.shields.io/badge/Plotly-5.20+-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)](https://plotly.com)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15+-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://tensorflow.org)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![Live App](https://img.shields.io/badge/Live%20App-Open%20Now-00D4AA?style=for-the-badge&logo=streamlit&logoColor=white)](https://time-series-fat7musz7uidspuszdrcb5.streamlit.app/)
 
 <br>
 
@@ -222,6 +223,8 @@ The app works with any CSV that contains:
 
 This project is pre-configured for one-click deployment on [Streamlit Community Cloud](https://streamlit.io/cloud).
 
+**Live deployment:** [https://time-series-fat7musz7uidspuszdrcb5.streamlit.app/](https://time-series-fat7musz7uidspuszdrcb5.streamlit.app/)
+
 ### Steps
 
 1. **Push to GitHub** — Ensure `app.py`, `forecasting.py`, `requirements.txt`, `runtime.txt`, and `.streamlit/config.toml` are committed.
@@ -236,7 +239,7 @@ This project is pre-configured for one-click deployment on [Streamlit Community 
 
 ### Important Notes
 
-- The `datasets/` folder is gitignored. On Streamlit Cloud, users will need to upload a CSV through the UI (the "Upload CSV" data source option).
+- The `datasets/` folder is gitignored. If the local default CSV is missing, the app attempts to download the original dataset from Kaggle automatically. If that fallback is unavailable, upload a CSV through the UI.
 - `tensorflow-cpu` is specified in `requirements.txt` instead of the full `tensorflow` package to reduce memory usage on cloud environments.
 - TensorFlow is installed only for Python versions below 3.13. On newer runtimes (for example 3.14), the app deploys without TensorFlow and automatically disables the LSTM model.
 - The `.streamlit/config.toml` file sets `maxUploadSize = 512` MB to support large BTC datasets.
